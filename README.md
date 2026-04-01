@@ -28,19 +28,18 @@
 
 ## 安装
 
-将 `plugin.json` 和 `index.js` 打包后在管理后台安装：
+推 tag 即可触发 CI 自动构建并发布到 GitHub Releases：
 
 ```bash
-# Python ZIP
-python3 -c "
-import zipfile
-with zipfile.ZipFile('pinyin-slug.zip', 'w') as z:
-    z.write('plugin.json')
-    z.write('index.js')
-"
+git tag v0.0.3
+git push origin v0.0.3
+```
 
-# 或 tar.gz
-tar -czf pinyin-slug.tar.gz plugin.json index.js
+或手动打包本地安装：
+
+```bash
+pnpm build
+zip plugin.zip package.json index.js
 ```
 
 ## 从源码构建（可选）

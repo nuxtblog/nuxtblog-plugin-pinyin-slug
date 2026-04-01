@@ -29,15 +29,31 @@ function runSilent(cmd) {
 // ── Read local metadata ───────────────────────────────────────────────────────
 
 const pkg = JSON.parse(readFileSync('package.json', 'utf-8'))
-// Build plugin metadata from package.json (plugin.json may not exist yet in CI)
+
+// author can be a string or { name, email, url } object
+const authorName = typeof pkg.author === 'string'
+  ? pkg.author
+  : (pkg.author?.name ?? '')
+
+// Infer plugin type from manifest capabilities rather than a manual field:
+//   pipeline → has pipelines declared
+//   webhook  → has webhooks but no pipelines
+//   hook     → JS-only (filter / on handlers)
+function inferType(pluginManifest) {
+  if (pluginManifest?.pipelines?.length) return 'pipeline'
+  if (pluginManifest?.webhooks?.length)  return 'webhook'
+  return 'hook'
+}
+
+// Build plugin metadata from package.json
 const plugin = {
   name:        pkg.name,
   title:       pkg.plugin?.title,
   description: pkg.description,
   version:     pkg.version,
-  author:      pkg.author,
+  author:      authorName,
   icon:        pkg.plugin?.icon,
-  type:        pkg.plugin?.type,
+  type:        inferType(pkg.plugin),
   keywords:    pkg.keywords ?? [],
   homepage:    pkg.homepage,
   license:     pkg.license,
@@ -122,7 +138,7 @@ const entry = {
   repo:         pluginRepo,
   homepage:     plugin.homepage || `https://github.com/${pluginRepo}`,
   tags:         plugin.keywords.filter(k => k !== 'nuxtblog-plugin'),
-  type:         plugin.type  || 'hook',
+  type:         plugin.type,
   is_official:  existing?.is_official ?? false,
   license:      plugin.license || 'MIT',
   published_at: existing?.published_at ?? now,

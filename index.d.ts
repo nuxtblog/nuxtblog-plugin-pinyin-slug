@@ -1,5 +1,5 @@
 /**
- * plugin.json — manifest fields
+ * package.json "plugin" field — manifest fields
  *
  * {
  *   "name":        "owner/repo",          // required, unique plugin ID

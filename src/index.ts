@@ -2,7 +2,7 @@
 // pinyin-slug
 //
 // filter:post.create / filter:post.update 拦截，将中文标题转换为拼音 slug。
-// 依赖：pinyin（https://www.npmjs.com/package/pinyin）
+// 依赖：pinyin-pro（https://www.npmjs.com/package/pinyin-pro）
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { pinyin } from "pinyin-pro";
@@ -29,7 +29,7 @@ function getMaxLength(): number {
 
 /**
  * 将标题转换为拼音 slug。
- *   - 中文 → 拼音（无声调，pinyin.STYLE_NORMAL）
+ *   - 中文 → 拼音（无声调，toneType: 'none'）
  *   - 英文 / 数字 → 保留并转小写
  *   - 其他字符（空格、标点）→ 替换为分隔符
  */
@@ -74,34 +74,34 @@ function needsConversion(slug: string): boolean {
 
 // ── filter:post.create ────────────────────────────────────────────────────
 
-nuxtblog.filter("post.create", (data) => {
+nuxtblog.filter("post.create", (ctx) => {
   const mode = getMode();
   const sep = getSeparator();
   const maxLen = getMaxLength();
 
-  if (mode === "auto" && !needsConversion(data.slug)) return data;
+  if (mode === "auto" && !needsConversion(ctx.data.slug)) return;
 
-  const newSlug = titleToSlug(data.title, sep, maxLen);
-  if (!newSlug) return data;
+  const newSlug = titleToSlug(ctx.data.title, sep, maxLen);
+  if (!newSlug) return;
 
-  nuxtblog.log.info(`[pinyin-slug] create: "${data.title}" → "${newSlug}"`);
-  return { ...data, slug: newSlug };
+  nuxtblog.log.info(`[pinyin-slug] create: "${ctx.data.title}" → "${newSlug}"`);
+  ctx.data.slug = newSlug;
 });
 
 // ── filter:post.update ────────────────────────────────────────────────────
 
-nuxtblog.filter("post.update", (data) => {
-  if (!data.title) return data; // 本次未更新标题
+nuxtblog.filter("post.update", (ctx) => {
+  if (!ctx.data.title) return; // 本次未更新标题
 
   const mode = getMode();
   const sep = getSeparator();
   const maxLen = getMaxLength();
 
-  if (mode === "auto" && !needsConversion(data.slug ?? "")) return data;
+  if (mode === "auto" && !needsConversion(ctx.data.slug ?? "")) return;
 
-  const newSlug = titleToSlug(data.title, sep, maxLen);
-  if (!newSlug) return data;
+  const newSlug = titleToSlug(ctx.data.title, sep, maxLen);
+  if (!newSlug) return;
 
-  nuxtblog.log.info(`[pinyin-slug] update: "${data.title}" → "${newSlug}"`);
-  return { ...data, slug: newSlug };
+  nuxtblog.log.info(`[pinyin-slug] update: "${ctx.data.title}" → "${newSlug}"`);
+  ctx.data.slug = newSlug;
 });

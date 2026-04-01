@@ -1,6 +1,6 @@
 {
   "name": "pinyin-slug",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "发布/修改文章时，自动将中文标题转换为拼音 slug（支持中英文混排）",
   "author": "nuxtblog",
   "license": "MIT",
@@ -20,7 +20,7 @@
     "title": "拼音 Slug",
     "icon": "i-tabler-language",
     "entry": "index.js",
-    "type": "hook",
+    "capabilities": {},
     "settings": [
       {
         "key": "mode",
