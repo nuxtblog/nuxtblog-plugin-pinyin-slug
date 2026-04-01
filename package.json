@@ -1,6 +1,6 @@
 {
   "name": "pinyin-slug",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "发布/修改文章时，自动将中文标题转换为拼音 slug（支持中英文混排）",
   "author": "nuxtblog",
   "license": "MIT",
@@ -62,5 +62,8 @@
     "esbuild": "^0.27.4",
     "pinyin-pro": "^3.26.0",
     "typescript": "^6.0.2"
+  },
+  "dependencies": {
+    "@nuxtblog/plugin-sdk": "^0.0.4"
   }
 }
