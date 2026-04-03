@@ -1,9 +1,9 @@
-// ─────────────────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
 // pinyin-slug
 //
 // filter:post.create / filter:post.update 拦截，将中文标题转换为拼音 slug。
 // 依赖：pinyin-pro（https://www.npmjs.com/package/pinyin-pro）
-// ─────────────────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
 
 import { pinyin } from "pinyin-pro";
 
@@ -29,15 +29,11 @@ function getMaxLength(): number {
 
 /**
  * 将标题转换为拼音 slug。
- *   - 中文 → 拼音（无声调，toneType: 'none'）
- *   - 英文 / 数字 → 保留并转小写
- *   - 其他字符（空格、标点）→ 替换为分隔符
  */
 function titleToSlug(title: string, sep: string, maxLen: number): string {
-  // pinyin-pro: 返回空格分隔的拼音字符串，toneType:'none' 表示无声调
   const pinyinStr: string = pinyin(title, {
-    toneType: "none", // 无声调：zhong 而非 zhōng
-    nonZh: "consecutive", // 非中文字符原样保留（连续）
+    toneType: "none",
+    nonZh: "consecutive",
     separator: " ",
   });
 
@@ -52,13 +48,11 @@ function titleToSlug(title: string, sep: string, maxLen: number): string {
 
   let slug = parts.join(sep);
 
-  // 合并连续分隔符，去除首尾
   const sepEsc = sep === "-" ? "\\-" : "_";
   slug = slug
     .replace(new RegExp(`${sepEsc}+`, "g"), sep)
     .replace(new RegExp(`^${sepEsc}|${sepEsc}$`, "g"), "");
 
-  // 截断
   if (maxLen > 0 && slug.length > maxLen) {
     slug = slug.slice(0, maxLen).replace(new RegExp(`${sepEsc}$`), "");
   }
@@ -72,36 +66,40 @@ function needsConversion(slug: string): boolean {
   return /[\u4e00-\u9fff]/.test(slug);
 }
 
-// ── filter:post.create ────────────────────────────────────────────────────
+// ── Lifecycle ─────────────────────────────────────────────────────────────
 
-nuxtblog.filter("post.create", (ctx) => {
-  const mode = getMode();
-  const sep = getSeparator();
-  const maxLen = getMaxLength();
+export function activate(ctx: PluginContext): void {
+  ctx.subscriptions.push(
+    nuxtblog.filter("post.create", (fCtx) => {
+      const mode = getMode();
+      const sep = getSeparator();
+      const maxLen = getMaxLength();
 
-  if (mode === "auto" && !needsConversion(ctx.data.slug)) return;
+      if (mode === "auto" && !needsConversion(fCtx.data.slug)) return;
 
-  const newSlug = titleToSlug(ctx.data.title, sep, maxLen);
-  if (!newSlug) return;
+      const newSlug = titleToSlug(fCtx.data.title, sep, maxLen);
+      if (!newSlug) return;
 
-  nuxtblog.log.info(`[pinyin-slug] create: "${ctx.data.title}" → "${newSlug}"`);
-  ctx.data.slug = newSlug;
-});
+      nuxtblog.log.info(`[pinyin-slug] create: "${fCtx.data.title}" → "${newSlug}"`);
+      fCtx.data.slug = newSlug;
+    }),
 
-// ── filter:post.update ────────────────────────────────────────────────────
+    nuxtblog.filter("post.update", (fCtx) => {
+      if (!fCtx.data.title) return;
 
-nuxtblog.filter("post.update", (ctx) => {
-  if (!ctx.data.title) return; // 本次未更新标题
+      const mode = getMode();
+      const sep = getSeparator();
+      const maxLen = getMaxLength();
 
-  const mode = getMode();
-  const sep = getSeparator();
-  const maxLen = getMaxLength();
+      if (mode === "auto" && !needsConversion(fCtx.data.slug ?? "")) return;
 
-  if (mode === "auto" && !needsConversion(ctx.data.slug ?? "")) return;
+      const newSlug = titleToSlug(fCtx.data.title, sep, maxLen);
+      if (!newSlug) return;
 
-  const newSlug = titleToSlug(ctx.data.title, sep, maxLen);
-  if (!newSlug) return;
+      nuxtblog.log.info(`[pinyin-slug] update: "${fCtx.data.title}" → "${newSlug}"`);
+      fCtx.data.slug = newSlug;
+    }),
+  );
+}
 
-  nuxtblog.log.info(`[pinyin-slug] update: "${ctx.data.title}" → "${newSlug}"`);
-  ctx.data.slug = newSlug;
-});
+export function deactivate(): void {}
