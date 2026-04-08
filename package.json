@@ -1,72 +1,20 @@
 {
-  "name": "pinyin-slug",
-  "version": "0.0.8",
-  "description": "发布/修改文章时，自动将中文标题转换为拼音 slug（支持中英文混排）",
-  "author": "nuxtblog",
-  "license": "MIT",
-  "homepage": "https://github.com/nuxtblog/nuxtblog-plugin-pinyin-slug",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/nuxtblog/nuxtblog-plugin-pinyin-slug.git"
-  },
-  "keywords": [
-    "slug",
-    "chinese",
-    "seo",
-    "nuxtblog-plugin"
-  ],
   "private": true,
-  "plugin": {
-    "title": "拼音 Slug",
-    "icon": "i-tabler-language",
-    "sdkVersion": "0.1.0",
-    "trust_level": "official",
-    "entry": "dist/index.js",
-    "activationEvents": ["onEvent:post.*"],
-    "capabilities": {},
-    "settings": [
-      {
-        "key": "mode",
-        "label": "转换模式",
-        "type": "select",
-        "default": "auto",
-        "options": [
-          "auto",
-          "always"
-        ],
-        "description": "auto = 仅当 slug 为空或含中文时转换；always = 每次都覆盖已有 slug"
-      },
-      {
-        "key": "separator",
-        "label": "分隔符",
-        "type": "select",
-        "default": "-",
-        "options": [
-          "-",
-          "_"
-        ],
-        "description": "拼音音节之间的分隔符"
-      },
-      {
-        "key": "max_length",
-        "label": "最大长度",
-        "type": "number",
-        "default": 80,
-        "description": "slug 最大字符数，超出部分截断（0 = 不限制）"
-      }
+  "scripts": {
+    "build": "esbuild src/plugin.ts --bundle --outfile=dist/plugin.js --format=cjs --target=es2015",
+    "check": "tsc --noEmit"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
     ]
   },
-  "scripts": {
-    "build": "esbuild src/index.ts --bundle --platform=neutral --format=iife --global-name=__plugin --footer:js=\"for(var __k in __plugin)this[__k]=__plugin[__k]\" --main-fields=browser,module,main --target=es2015 --outfile=dist/index.js",
-    "build:watch": "esbuild src/index.ts --bundle --platform=neutral --format=cjs --main-fields=browser,module,main --target=es2015 --outfile=dist/index.js --watch",
-    "typecheck": "tsc --noEmit"
-  },
   "devDependencies": {
-    "esbuild": "^0.27.4",
-    "pinyin-pro": "^3.26.0",
-    "typescript": "^6.0.2"
+    "@nuxtblog/plugin-sdk": "^0.3.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.8.0"
   },
   "dependencies": {
-    "@nuxtblog/plugin-sdk": "^0.1.0"
+    "pinyin-pro": "^3.28.0"
   }
 }

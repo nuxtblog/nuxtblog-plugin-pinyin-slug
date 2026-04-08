@@ -1,5 +1,2 @@
-dist
-node_modules
-index.js
-*zip
-.vscode
+node_modules/
+dist/

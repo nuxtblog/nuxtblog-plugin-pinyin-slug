@@ -1,0 +1,43 @@
+id: nuxtblog-plugin-pinyin-slug
+title: 拼音 Slug
+version: 2.0.0
+icon: i-tabler-language
+author: nuxtblog
+description: 发布/修改文章时，自动将中文标题转换为拼音 slug
+
+type: js
+runtime: interpreted
+trust_level: official
+license: MIT
+sdk_version: "1.0.0"
+priority: 5
+
+repo: https://github.com/nuxtblog/nuxtblog-plugin-pinyin-slug
+homepage: https://github.com/nuxtblog/nuxtblog-plugin-pinyin-slug
+tags: [slug, chinese, seo]
+
+js_entry: dist/plugin.js
+
+settings:
+  - key: mode
+    label: 转换模式
+    type: select
+    default: auto
+    options: [auto, always]
+    description: "auto = 仅当 slug 为空或含中文时转换；always = 每次都覆盖已有 slug"
+    group: 基础配置
+
+  - key: separator
+    label: 分隔符
+    type: select
+    default: "-"
+    options: ["-", "_"]
+    description: 拼音音节之间的分隔符
+    group: 基础配置
+
+  - key: max_length
+    label: 最大长度
+    type: number
+    default: 80
+    description: "slug 最大字符数，超出部分截断（0 = 不限制）"
+    group: 基础配置

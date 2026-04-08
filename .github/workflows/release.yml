@@ -12,34 +12,27 @@ jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write   # needed to create GitHub Release
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
         with:
-          version: latest
+          version: 10
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'pnpm'
+          node-version: 22
+          cache: pnpm
 
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Type check
-        run: pnpm typecheck
-
-      - name: Build
-        run: pnpm build
-
-      - name: Package dist
+      - name: Install & Build
         run: |
-          files="package.json dist/index.js"
-          [ -f dist/index.css ] && files="$files dist/index.css"
-          zip plugin.zip $files
+          pnpm install --frozen-lockfile
+          pnpm build
+
+      - name: Package plugin
+        run: zip -r plugin.zip plugin.yaml dist/
 
       - name: Create GitHub Release
         env:
@@ -52,28 +45,33 @@ jobs:
   submit-pr:
     needs: release
     runs-on: ubuntu-latest
-
+    if: ${{ secrets.REGISTRY_PAT != '' }}
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: latest
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --ignore-scripts
-
       - name: Submit PR to registry
         env:
           GH_TOKEN: ${{ secrets.REGISTRY_PAT }}
         run: |
-          if [ -z "$GH_TOKEN" ]; then
-            echo "REGISTRY_PAT not set, skipping PR submission"
-            exit 0
-          fi
-          node .github/scripts/submit-pr.mjs
+          PLUGIN_ID="nuxtblog-plugin-pinyin-slug"
+          VERSION="${GITHUB_REF_NAME#v}"
+          REGISTRY="nuxtblog/registry"
+          BRANCH="update-${PLUGIN_ID}-${VERSION}"
+          FILE="plugins/nuxtblog_${PLUGIN_ID}.json"
+          TODAY=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/${REGISTRY}.git" registry
+          cd registry
+
+          sed -i "s/\"version\": \".*\"/\"version\": \"${VERSION}\"/" "$FILE"
+          sed -i "s/\"updated_at\": \".*\"/\"updated_at\": \"${TODAY}\"/" "$FILE"
+
+          git checkout -b "$BRANCH"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "$FILE"
+          git commit -m "update ${PLUGIN_ID} to v${VERSION}"
+          git push origin "$BRANCH"
+
+          gh pr create --repo "$REGISTRY" \
+            --head "$BRANCH" \
+            --title "update ${PLUGIN_ID} to v${VERSION}" \
+            --body "Automated release from [${PLUGIN_ID} ${GITHUB_REF_NAME}](https://github.com/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME})"
