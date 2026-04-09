@@ -1,6 +1,6 @@
 id: nuxtblog-plugin-pinyin-slug
 title: 拼音 Slug
-version: 2.0.1
+version: 2.0.2
 icon: i-tabler-language
 author: nuxtblog
 description: 发布/修改文章时，自动将中文标题转换为拼音 slug
